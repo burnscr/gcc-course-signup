@@ -4,10 +4,9 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import ui.icons.DarkMode
-import ui.icons.LightMode
 
 @Composable
 fun DarkModeToggleButton(
@@ -23,7 +22,7 @@ fun DarkModeToggleButton(
         enabled = enabled,
     ) {
         Icon(
-            imageVector = if (darkMode) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+            imageVector = if (darkMode) Icons.Filled.Star else Icons.Filled.Star,
             contentDescription = if (darkMode) "Light mode" else "Dark mode",
         )
     }
