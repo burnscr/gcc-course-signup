@@ -9,8 +9,8 @@ fun main() = application {
     appManager.initialize()
     Window(
         onCloseRequest = {
-            appManager.quit()
             exitApplication()
+            appManager.quit()
         },
         title = "GCC Course Signup"
     ) {
