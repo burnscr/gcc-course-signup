@@ -1,14 +1,28 @@
+/*
+ * Copyright 2022 Christian Burns
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package ui
 
 import LocalTime
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,10 +35,10 @@ fun TimePicker(
     selectedTime: (LocalTime) -> Unit
 ) {
     var isAfternoonSelected by remember { mutableStateOf(defaultHour >= 12) }
-    var localHourTextSelected by remember { mutableStateOf(hour24To12String(defaultHour)) }
-    var localMinuteTextSelected by remember { mutableStateOf(minuteToString(defaultMinute)) }
+    var localHourSelected by remember { mutableStateOf(hour24To12(defaultHour)) }
+    var localMinuteSelected by remember { mutableStateOf(defaultMinute) }
     val callbackWithSelectedTime: () -> Unit = {
-        val localTime = LocalTime(localHourTextSelected.toInt(), localMinuteTextSelected.toInt(), isAfternoonSelected)
+        val localTime = LocalTime(localHourSelected, localMinuteSelected, isAfternoonSelected)
         selectedTime(localTime)
     }
     callbackWithSelectedTime()
@@ -34,10 +48,18 @@ fun TimePicker(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(all = 24.dp),
         ) {
-            NumberSelector(1..12, localHourTextSelected) {
-                localHourTextSelected = it.toString()
-                callbackWithSelectedTime()
-            }
+            TimeDropdownSelector(
+                range = 1..12,
+                default = localHourSelected,
+                onSelection = {
+                    localHourSelected = it
+                    callbackWithSelectedTime()
+                },
+                style = TextStyle(
+                    fontSize = 100.sp,
+                    fontWeight = FontWeight.ExtraLight
+                )
+            )
 
             Spacer(modifier = Modifier.width(4.dp))
 
@@ -45,10 +67,18 @@ fun TimePicker(
 
             Spacer(modifier = Modifier.width(4.dp))
 
-            NumberSelector(0..59, localMinuteTextSelected) {
-                localMinuteTextSelected = it.toString()
-                callbackWithSelectedTime()
-            }
+            TimeDropdownSelector(
+                range = 0..59,
+                default = localMinuteSelected,
+                onSelection = {
+                    localMinuteSelected = it
+                    callbackWithSelectedTime()
+                },
+                style = TextStyle(
+                    fontSize = 100.sp,
+                    fontWeight = FontWeight.ExtraLight
+                )
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -88,102 +118,10 @@ fun TimePicker(
     }
 }
 
-private fun hour24To12String(hour24: Int): String {
+private fun hour24To12(hour24: Int): Int {
     return when (true) {
-        (hour24 < 1) -> (hour24 + 12).toString()
-        (hour24 > 12) -> (hour24 - 12).toString()
-        else -> hour24.toString()
-    }.padStart(2, '0')
-}
-
-private fun minuteToString(minute: Int): String {
-    return minute.toString().padStart(2, '0')
-}
-
-
-@Composable
-fun DropDownList(
-    requestToOpen: Boolean = false,
-    list: List<String>,
-    request: (Boolean) -> Unit,
-    selectedString: (String) -> Unit,
-) {
-    DropdownMenu(
-        expanded = requestToOpen,
-        onDismissRequest = { request(false) },
-    ) {
-        list.forEach {
-            DropdownMenuItem(
-                onClick = {
-                    request(false)
-                    selectedString(it)
-                }
-            ) {
-                Text(
-                    text = it,
-                    modifier = Modifier.wrapContentWidth()
-                )
-            }
-        }
+        (hour24 < 1) -> hour24 + 12
+        (hour24 > 12) -> hour24 - 12
+        else -> hour24
     }
-}
-
-
-@Composable
-fun NumberSelector(
-    range: IntProgression,
-    default: String,
-    selectedNumber: (Int) -> Unit,
-) {
-    val numberList = range.map { it.toString().padStart(2, '0') }
-    val text = remember { mutableStateOf(default) }
-    val isOpen = remember { mutableStateOf(false) }
-    val openCloseOfDropDownList: (Boolean) -> Unit = {
-        isOpen.value = it
-    }
-    val userSelectedString: (String) -> Unit = {
-        text.value = it
-        selectedNumber(it.toInt())
-    }
-
-    Box {
-        Column {
-//            OutlinedTextField(
-//                value = text.value,
-//                onValueChange = { text.value = it },
-//                modifier = Modifier.width(100.dp),
-//                textStyle = TextStyle(
-//                    fontSize = 50.sp,
-//                    textAlign = TextAlign.Center,
-//                ),
-//            )
-            LargeText(text.value)
-            DropDownList(
-                requestToOpen = isOpen.value,
-                list = numberList,
-                openCloseOfDropDownList,
-                userSelectedString,
-            )
-        }
-        Spacer(
-            modifier = Modifier.matchParentSize()
-                .background(Color.Transparent)
-                .clickable(
-                    onClick = { isOpen.value = true }
-                )
-        )
-    }
-}
-
-@Composable
-fun LargeText(text: String) {
-    Text(
-        text = text,
-//        style = MaterialTheme.typography.,
-        fontSize = 100.sp,
-        fontWeight = FontWeight.ExtraLight,
-        modifier = Modifier.padding(
-            horizontal = 8.dp,
-        ),
-    )
 }

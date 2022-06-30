@@ -27,6 +27,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
+                api(compose.materialIconsExtended)
 
                 // logging
                 implementation("org.slf4j:slf4j-api:1.7.36")
@@ -48,6 +49,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "gcc-course-signup"
             packageVersion = "1.0.0"
+            licenseFile.set(project.file("LICENSE"))
         }
     }
 }
