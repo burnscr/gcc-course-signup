@@ -15,6 +15,13 @@ This project has no affiliation with Grove City College in any way.
 - [x] Automatic web driver management to work with installed browser's version
 - [ ] Supports different browser types (currently only Chrome)
 
+## User Interface
+
+
+
+![Light Mode GUI](images/light_mode_gui.png)
+![Dark Mode GUI](images/dark_mode_gui.png)
+
 ## License
 
     Copyright 2022 Christian Burns
