@@ -27,90 +27,130 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
 import core.AppManager
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.*
 
+/**
+ * App is the top-level UI component which acts as a bridge between the
+ * user interface and the core functionality of this application.
+ */
 @Composable
 @Preview
-fun App(appManager: AppManager) {
-    var textFieldValue by remember { mutableStateOf("") }
+fun App() {
+    // 5:00pm is usually the first timeslot that gets to enjoy registration
+    val initialTimeOfDay = TimeOfDay(hour = 5, minute = 0, afternoon = true)
     val composableScope = rememberCoroutineScope()
-
     val initialDarkMode = isSystemInDarkTheme()
+    var timeOfDay by remember { mutableStateOf(initialTimeOfDay) }
     var darkMode by remember { mutableStateOf(initialDarkMode) }
 
+    // Material design aesthetic (•̀ᴗ•́)━☆.*･｡ﾟ★
     MaterialTheme(
-        colors = if (darkMode) darkColors() else lightColors(),
+        colors = if (darkMode) darkColors() else lightColors()
     ) {
-        Surface(color = MaterialTheme.colors.background) {
-            Spacer(modifier = Modifier.fillMaxSize())
+        // This surface applies the dark/light mode theme to the background of the window
+        Surface(
+            color = MaterialTheme.colors.background,
+            modifier = Modifier.fillMaxSize()
+        ) {
             Column(
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Course Registration Time",
-                        style = MaterialTheme.typography.h5
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    DarkModeToggleButton(onClick = { darkMode = !darkMode })
-                }
+                // Text describing the time picker and dark-mode toggle button
+                Header(
+                    title = "Course Registration Time",
+                    onClick = { darkMode = !darkMode }
+                )
+                Spacer(modifier = Modifier.height(4.dp))
 
+                // Time picker to select what time of day registration occurs
                 TimePicker(
-                    defaultHour = 17,
-                    defaultMinute = 0,
-                    selectedTime = {
-                        val localDateTime = LocalDateTime.now()
-                            .withHour(it.hour)
-                            .withMinute(it.minute)
-                            .withSecond(0)
-                            .withNano(0)
-                        val zoneId = ZoneId.systemDefault()
-                        val epoch = localDateTime.atZone(zoneId).toEpochSecond()
-                        textFieldValue = epoch.toString()
+                    timeOfDay = timeOfDay,
+                    selectedTime = { timeOfDay = it }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Buttons at the bottom of the application to launch or cancel browser instances
+                // Coroutines are used here to prevent hanging the UI thread while performing the actions
+                ActionButtons(
+                    onStartRequest = {
+                        composableScope.launch {
+                            // Launches a new browser window
+                            AppManager.newBrowserInstance(timeOfDay.toDate())
+                        }
+                    },
+                    onCancelRequest = {
+                        composableScope.launch {
+                            // Closes out of all browser windows
+                            AppManager.quit()
+                        }
                     }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(
-                            backgroundColor = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
-                                .compositeOver(MaterialTheme.colors.surface),
-                        ),
-                        onClick = {
-                            composableScope.launch {
-                                appManager.quit()
-                            }
-                        },
-                    ) {
-                        Text(text = "Cancel")
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(
-                        onClick = {
-                            composableScope.launch {
-                                val unixTimestamp = textFieldValue.toLong()
-                                val dateTime = Date.from(Instant.ofEpochSecond(unixTimestamp))
-                                appManager.newBrowserInstance(dateTime)
-                            }
-                        },
-                        enabled = textFieldValue.isNotEmpty(),
-                    ) {
-                        Text(text = "Launch")
-                    }
-                }
             }
         }
     }
+}
+
+/**
+ * Header containing text and a dark mode toggle button.
+ *
+ * @param title The header text to display.
+ * @param onClick The lambda to be invoked when the dark mode toggle button is pressed.
+ */
+@Composable
+@Suppress("SameParameterValue")
+private fun Header(
+    title: String,
+    onClick: () -> Unit
+) = Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Center
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.h5
+    )
+    Spacer(modifier = Modifier.width(8.dp))
+    DarkModeToggleButton(onClick = onClick)
+}
+
+/**
+ * Button group used to launch or cancel an action.
+ *
+ * @param onStartRequest The lambda to be invoked when the start button is pressed.
+ * @param onCancelRequest The lambda to be invoked when the cancel button is pressed.
+ * @param startEnabled Controls the enabled state. When `false`, the start button will not
+ * be clickable.
+ * @param cancelEnabled Controls the enabled state. When `false`, the cancel button will not
+ * be clickable.
+ */
+@Composable
+private fun ActionButtons(
+    onStartRequest: () -> Unit,
+    onCancelRequest: () -> Unit,
+    startEnabled: Boolean = true,
+    cancelEnabled: Boolean = true
+) = Row(verticalAlignment = Alignment.CenterVertically) {
+
+    // Mutes the colors of the button and content within the button
+    val cancelButtonColors = ButtonDefaults.buttonColors(
+        backgroundColor = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+            .compositeOver(MaterialTheme.colors.surface)
+    )
+
+    Button(
+        onClick = onCancelRequest,
+        enabled = cancelEnabled,
+        colors = cancelButtonColors,
+        content = { Text("Cancel") }
+    )
+
+    Spacer(modifier = Modifier.width(16.dp))
+
+    Button(
+        onClick = onStartRequest,
+        enabled = startEnabled,
+        content = { Text("Launch") }
+    )
 }

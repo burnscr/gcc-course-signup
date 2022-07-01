@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
  * color themes. Blending into the background, dark mode toggle buttons help maintain an emphasis
  * on app content.
  *
- * @param onClick Will be called when the user clicks the button
+ * @param onClick The lambda to be invoked when the toggle button is pressed.
  * @param modifier Modifier to be applied to the button
  * @param enabled Controls the enabled state of the button. When `false`, this button will not
  * be clickable

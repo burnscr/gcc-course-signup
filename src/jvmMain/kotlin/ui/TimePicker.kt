@@ -16,112 +16,114 @@
 
 package ui
 
-import LocalTime
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.time.LocalTime
 
+/**
+ * Material Design time picker.
+ *
+ * Time pickers are components designed to allow a user to select a time in 12-hour format.
+ *
+ * @param timeOfDay The initial/default time-of-day to be displayed on the selector.
+ * @param selectedTime The lambda to be invoked when the time-of-day is updated.
+ */
 @Composable
 fun TimePicker(
-    defaultHour: Int,
-    defaultMinute: Int,
-    selectedTime: (LocalTime) -> Unit
+    timeOfDay: TimeOfDay,
+    selectedTime: (TimeOfDay) -> Unit
 ) {
-    var isAfternoonSelected by remember { mutableStateOf(defaultHour >= 12) }
-    var localHourSelected by remember { mutableStateOf(hour24To12(defaultHour)) }
-    var localMinuteSelected by remember { mutableStateOf(defaultMinute) }
-    val callbackWithSelectedTime: () -> Unit = {
-        val localTime = LocalTime(localHourSelected, localMinuteSelected, isAfternoonSelected)
-        selectedTime(localTime)
-    }
-    callbackWithSelectedTime()
+    val rangeOfHours = 1..12
+    val rangeOfMinutes = 0..59
+    val timeDropdownTextStyle = TextStyle(
+        fontSize = 100.sp,
+        fontWeight = FontWeight.ExtraLight
+    )
 
     Card(elevation = 5.dp) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(all = 24.dp),
         ) {
+
+            // Hours selection
             TimeDropdownSelector(
-                range = 1..12,
-                default = localHourSelected,
-                onSelection = {
-                    localHourSelected = it
-                    callbackWithSelectedTime()
-                },
-                style = TextStyle(
-                    fontSize = 100.sp,
-                    fontWeight = FontWeight.ExtraLight
-                )
+                range = rangeOfHours,
+                default = timeOfDay.hour,
+                onSelection = { selectedTime(timeOfDay.copy(hour = it)) },
+                style = timeDropdownTextStyle
             )
 
+            // Deliminator - smaller to avoid drawing attention
             Spacer(modifier = Modifier.width(4.dp))
-
             Text(":", style = MaterialTheme.typography.h2)
-
             Spacer(modifier = Modifier.width(4.dp))
 
+            // Minutes selection
             TimeDropdownSelector(
-                range = 0..59,
-                default = localMinuteSelected,
-                onSelection = {
-                    localMinuteSelected = it
-                    callbackWithSelectedTime()
-                },
-                style = TextStyle(
-                    fontSize = 100.sp,
-                    fontWeight = FontWeight.ExtraLight
-                )
+                range = rangeOfMinutes,
+                default = timeOfDay.minute,
+                onSelection = { selectedTime(timeOfDay.copy(minute = it)) },
+                style = timeDropdownTextStyle
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
-                Button(
-                    onClick = {
-                        isAfternoonSelected = false
-                        callbackWithSelectedTime()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = if (isAfternoonSelected) {
-                            MaterialTheme.colors.background
-                        } else {
-                            MaterialTheme.colors.primary
-                        }
-                    )
-                ) {
-                    Text(text = "AM")
-                }
-                Button(
-                    onClick = {
-                        isAfternoonSelected = true
-                        callbackWithSelectedTime()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        backgroundColor = if (isAfternoonSelected) {
-                            MaterialTheme.colors.primary
-                        } else {
-                            MaterialTheme.colors.background
-                        }
-                    )
-                ) {
-                    Text(text = "PM")
-                }
-            }
+            // AM / PM selection
+            AmPmButtons(
+                afternoon = timeOfDay.afternoon,
+                onClickAm = { selectedTime(timeOfDay.copy(afternoon = false)) },
+                onClickPm = { selectedTime(timeOfDay.copy(afternoon = true)) }
+            )
         }
     }
 }
 
-private fun hour24To12(hour24: Int): Int {
-    return when (true) {
-        (hour24 < 1) -> hour24 + 12
-        (hour24 > 12) -> hour24 - 12
-        else -> hour24
-    }
+/**
+ * Button grouping to toggle between AM / PM.
+ *
+ * @param afternoon if afternoon (PM) is currently selected
+ * @param onClickAm the lambda to be invoked when the AM button is pressed
+ * @param onClickPm the lambda to be invoked when the PM button is pressed
+ */
+@Composable
+private fun AmPmButtons(
+    afternoon: Boolean,
+    onClickAm: () -> Unit,
+    onClickPm: () -> Unit
+) = Column {
+
+    // Before noon (ante meridiem)
+    Button(
+        onClick = onClickAm,
+        colors = ToggleColors(!afternoon),
+        content = { Text("AM") }
+    )
+
+    // After noon (post meridiem)
+    Button(
+        onClick = onClickPm,
+        colors = ToggleColors(afternoon),
+        content = { Text("PM") }
+    )
+}
+
+/**
+ * Toggles between primary vs muted colors for a toggle button.
+ *
+ * @param selected if the button is currently selected
+ */
+@Composable
+private fun ToggleColors(selected: Boolean): ButtonColors {
+    return ButtonDefaults.buttonColors(
+        backgroundColor = if (selected)
+            MaterialTheme.colors.primary
+        else MaterialTheme.colors.background
+    )
 }

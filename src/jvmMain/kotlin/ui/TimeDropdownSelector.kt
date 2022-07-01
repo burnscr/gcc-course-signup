@@ -29,7 +29,8 @@ import androidx.compose.ui.text.TextStyle
 /**
  * Material Design time dropdown selector.
  *
- *
+ * Time dropdown selectors are components that provide a way to select a time value from a
+ * range of values utilizing a dropdown menu.
  *
  * @param range The range of times to include within the dropdown menu.
  * @param default The time selected by default.

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import java.time.LocalTime
+import java.time.DateTimeException
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -38,11 +39,20 @@ inline fun Timer.schedule(delay: Long, period: Long, crossinline action: TimerTa
     return task
 }
 
-fun LocalTime(hour: Int, minute: Int, afternoon: Boolean): LocalTime {
-    val hour24 = when (true) {
+/**
+ * Returns a copy of this [LocalDateTime] with the hour-of-day altered.
+ *
+ * This instance is immutable and unaffected by this method call.
+ *
+ * @param hour the hour-of-day to set in the result, from 1 to 12
+ * @param afternoon if the hour-of-day is in the afternoon (post meridiem)
+ * @return a [LocalDateTime] based on this date-time with the requested hour, not null
+ * @throws DateTimeException if the hour value is invalid
+ */
+fun LocalDateTime.withHour(hour: Int, afternoon: Boolean): LocalDateTime {
+    return withHour(when (true) {
         (!afternoon && hour == 12) -> 0
         (afternoon && hour != 12) -> hour + 12
         else -> hour
-    }
-    return LocalTime.of(hour24, minute)
+    })
 }

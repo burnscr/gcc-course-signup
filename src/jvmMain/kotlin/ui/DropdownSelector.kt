@@ -60,12 +60,14 @@ fun <T> DropdownSelector(
     propagateMinConstraints: Boolean = false,
     enabled: Boolean = true,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
-    itemContent: @Composable @ExtensionFunctionType RowScope.(T) -> Unit,
-    content: @Composable @ExtensionFunctionType BoxScope.(T?) -> Unit
+    itemContent: @Composable RowScope.(T) -> Unit,
+    content: @Composable BoxScope.(T?) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf(defaultItem) }
 
+    // This box component stacks its child components on top of each other
+    // in the order that they appear within the BoxScope content.
     Box(
         modifier = modifier,
         contentAlignment = contentAlignment,
@@ -85,11 +87,15 @@ fun <T> DropdownSelector(
                         expanded = false
                         onSelection(item)
                     },
-                    content = { itemContent(item) }
+                    content = {
+                        itemContent(item)
+                    }
                 )
             }
         }
 
+        // This spacer covers the dropdown menu and any additional components
+        // specified to high-jack clicks in order to toggle the dropdown menu
         Spacer(
             modifier = Modifier
                 .matchParentSize()

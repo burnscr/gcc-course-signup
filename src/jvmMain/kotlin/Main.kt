@@ -21,21 +21,28 @@ import androidx.compose.ui.window.application
 import core.AppManager
 import ui.App
 
+/**
+ * Main entry point for this application.
+ */
 fun main() = application {
-    val appManager = AppManager()
-    appManager.initialize()
+    // Referencing the AppManager object here invokes its init{} code
+    // which preloads the web driver manager now. This will cause the
+    // first launch of the program to take slightly longer, but will
+    // avoid a delayed response later on when the user tries to launch
+    // a browser for the first time.
+    AppManager
+
     Window(
         onCloseRequest = {
             exitApplication()
-            appManager.quit()
+            AppManager.quit()
         },
         title = "GCC Course Signup",
         resizable = false,
         state = WindowState(
             height = 350.dp,
             width = 500.dp
-        )
-    ) {
-        App(appManager)
-    }
+        ),
+        content = { App() }
+    )
 }
