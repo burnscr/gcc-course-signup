@@ -18,8 +18,8 @@ This project has no affiliation with Grove City College in any way.
 ## User Interface
 
 <p align="middle">
-  <img src="/images/light_mode_gui.png" />
-  <img src="/images/dark_mode_gui.png" /> 
+  <img src="/images/light_mode_gui.png" width="400" />
+  <img src="/images/dark_mode_gui.png" width="400" /> 
 </p>
 
 ## License
