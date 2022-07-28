@@ -16,50 +16,35 @@
 
 package core.pages
 
-import org.openqa.selenium.By
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
-import java.time.Duration
+import org.openqa.selenium.support.FindBy
+import org.openqa.selenium.support.PageFactory
 
 class LoginPage(driver: WebDriver) : Page(driver) {
 
-    private val loginButtonBy = By.cssSelector("input[value='Login']")
+    @FindBy(css = "input[value='Login']")
+    private val loginButton: List<WebElement> = listOf()
 
-    private val collapseLoginButtonBy = By.cssSelector("button[aria-controls='user-login-section']")
-
-    private val loginButton: WebElement?
-        get() = driver.findElements(loginButtonBy).firstOrNull()
-
-    private val collapseLoginButton: WebElement?
-        get() = driver.findElements(collapseLoginButtonBy).firstOrNull()
-
+    @FindBy(css = "button[aria-controls='user-login-section']")
+    private val expandLoginFormButton: List<WebElement> = listOf()
 
     init {
         driver.get(PAGE_URL)
+        PageFactory.initElements(driver, this)
     }
 
-
-    fun isLoggedIn(): Boolean {
-        waitUntilPageLoaded()
-        return loginButton == null
+    fun clickExpandLoginFormButton() {
+        expandLoginFormButton.first().click()
     }
 
-    fun isCollapsed(): Boolean {
-        val button = collapseLoginButton ?: return false
-        return button.getAttribute("aria-expanded") == "false"
+    fun isLoginFormExpanded(): Boolean {
+        val expandButton = expandLoginFormButton.firstOrNull() ?: return true
+        return !expandButton.isDisplayed || expandButton.getAttribute("aria-expanded") == "true"
     }
 
-    fun setCollapsed(collapsed: Boolean) {
-        val button = collapseLoginButton ?: return
-        val isCollapsed = button.getAttribute("aria-expanded") == "false"
-        if (collapsed != isCollapsed) button.click()
-    }
-
-    fun waitForLogin() {
-        val duration = Duration.ofSeconds(1)
-        while (!isLoggedIn()) {
-            driver.manage().timeouts().implicitlyWait(duration)
-        }
+    fun isLoginButtonPresent(): Boolean {
+        return loginButton.isNotEmpty()
     }
 
     companion object {

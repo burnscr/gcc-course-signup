@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
 import core.AppManager
+import core.BrowserType
 import kotlinx.coroutines.launch
 
 /**
@@ -39,8 +40,15 @@ fun App() {
     val initialTimeOfDay = TimeOfDay(hour = 5, minute = 0, afternoon = true)
     val composableScope = rememberCoroutineScope()
     val initialDarkMode = isSystemInDarkTheme()
+    val browserType = BrowserType.CHROME
     var timeOfDay by remember { mutableStateOf(initialTimeOfDay) }
     var darkMode by remember { mutableStateOf(initialDarkMode) }
+
+    // Preloads the browser web drivers now so that we avoid a long delay the
+    // first time a user clicks the launch button.
+    composableScope.launch {
+        AppManager.preloadBrowserDrivers(browserType)
+    }
 
     // Material design aesthetic (•̀ᴗ•́)━☆.*･｡ﾟ★
     MaterialTheme(
@@ -77,7 +85,7 @@ fun App() {
                     onStartRequest = {
                         composableScope.launch {
                             // Launches a new browser window
-                            AppManager.newBrowserInstance(timeOfDay.toDate())
+                            AppManager.newBrowserInstance(browserType, timeOfDay.toDate())
                         }
                     },
                     onCancelRequest = {

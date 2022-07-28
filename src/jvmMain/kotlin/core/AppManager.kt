@@ -21,7 +21,6 @@ import core.pages.LoginPage
 import core.pages.SiteAuthentication
 import io.github.bonigarcia.wdm.WebDriverManager
 import org.openqa.selenium.WebDriver
-import org.openqa.selenium.chrome.ChromeDriver
 import java.time.Duration
 import java.util.*
 import kotlin.concurrent.thread
@@ -40,14 +39,19 @@ object AppManager {
         WebDriverManager.chromedriver().setup()
     }
 
+    suspend fun preloadBrowserDrivers(browserType: BrowserType) {
+        DriverFactory.preload(browserType)
+    }
+
     /**
      * Creates a new browser to be used to automate course registration submission.
      *
+     * @param browserType the type of browser for the new instance to use
      * @param registration the [Date] describing exactly when course registration is
      * scheduled to become available.
      */
-    fun newBrowserInstance(registration: Date) {
-        val driver: WebDriver = ChromeDriver()
+    suspend fun newBrowserInstance(browserType: BrowserType, registration: Date) {
+        val driver: WebDriver = DriverFactory.get(browserType)
         drivers.add(driver)
         startApplicationLogic(driver, registration)
     }
@@ -72,13 +76,19 @@ object AppManager {
      */
     private fun startApplicationLogic(driver: WebDriver, registration: Date) = thread(isDaemon = true) {
         try {
+            // Since many students will be using the site at the same time, the response times
+            // will become very long. We need to tell the web driver to be more patient to avoid
+            // it timing out waiting for the server to serve our request and load the pages.
+            driver.manage().timeouts().pageLoadTimeout(Duration.ofMinutes(20))
+
             // Navigates to the MyGCC login page and waits for the user to successfully log in.
             // For convenience, this also expands the login dialog box since the browser size
             // often triggers the site's responsive design to collapse components for simplicity.
             val loginPage = LoginPage(driver)
-            if (loginPage.isCollapsed())
-                loginPage.setCollapsed(false)
-            loginPage.waitForLogin()
+            if (!loginPage.isLoginFormExpanded())
+                loginPage.clickExpandLoginFormButton()
+            while (loginPage.isLoginButtonPresent())
+                loginPage.wait(Duration.ofSeconds(1))
 
             // Starts a repeating task to continuously check if the user is about to be logged
             // out due to not interacting with the site for a while. This usually happens after
@@ -102,7 +112,7 @@ object AppManager {
             // This also lets the user view the results of the registration (confirmation dialog).
             waitUntilBrowserClose(driver)
         } finally {
-            // No matter what happened, ensure all running resources for this browser get cleaned up
+            // No matter what happened, ensure all running resources for this browser get cleaned up.
             driver.quit()
         }
     }
@@ -111,10 +121,11 @@ object AppManager {
      * Blocks until the browser was manually closed by the user (or randomly dies).
      */
     private fun waitUntilBrowserClose(driver: WebDriver) {
+        val duration = Duration.ofSeconds(1)
         try {
             while (true) {
                 driver.title  // Fetching the site's title will raise an exception once closed
-                driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(1))
+                Thread.sleep(duration.toMillis())
             }
         } catch (_: Exception) {
             // Closing the browser throws an exception

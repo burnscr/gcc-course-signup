@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package core.pages
+package core
 
-import org.openqa.selenium.WebDriver
-import java.time.Duration
-
-open class Page(protected val driver: WebDriver) {
-
-    fun wait(duration: Duration) {
-        Thread.sleep(duration.toMillis())
-    }
+enum class BrowserType {
+    CHROME,
+    FIREFOX,
+    SAFARI,
+    EDGE
 }

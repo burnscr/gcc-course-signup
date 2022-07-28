@@ -25,17 +25,10 @@ import ui.App
  * Main entry point for this application.
  */
 fun main() = application {
-    // Referencing the AppManager object here invokes its init{} code
-    // which preloads the web driver manager now. This will cause the
-    // first launch of the program to take slightly longer, but will
-    // avoid a delayed response later on when the user tries to launch
-    // a browser for the first time.
-    AppManager
-
     Window(
         onCloseRequest = {
-            exitApplication()
             AppManager.quit()
+            exitApplication()
         },
         title = "GCC Course Signup",
         resizable = false,
