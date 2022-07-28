@@ -19,7 +19,6 @@ package core
 import core.pages.CourseSignupPage
 import core.pages.LoginPage
 import core.pages.SiteAuthentication
-import io.github.bonigarcia.wdm.WebDriverManager
 import org.openqa.selenium.WebDriver
 import java.time.Duration
 import java.util.*
@@ -32,12 +31,6 @@ object AppManager {
 
     // A list of all drivers currently bound to a browser
     private val drivers = mutableListOf<WebDriver>()
-
-    init {
-        // Defined within the init block so that it will only be run
-        // once upon the first invocation of this singleton object.
-        WebDriverManager.chromedriver().setup()
-    }
 
     suspend fun preloadBrowserDrivers(browserType: BrowserType) {
         DriverFactory.preload(browserType)
