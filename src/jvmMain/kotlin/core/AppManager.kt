@@ -80,8 +80,7 @@ object AppManager {
             val loginPage = LoginPage(driver)
             if (!loginPage.isLoginFormExpanded())
                 loginPage.clickExpandLoginFormButton()
-            while (loginPage.isLoginButtonPresent())
-                loginPage.wait(Duration.ofSeconds(1))
+            waitUntilLoggedIn(driver, loginPage)
 
             // Starts a repeating task to continuously check if the user is about to be logged
             // out due to not interacting with the site for a while. This usually happens after
@@ -123,5 +122,17 @@ object AppManager {
         } catch (_: Exception) {
             // Closing the browser throws an exception
         }
+    }
+
+    /**
+     * Blocks until the user logs into the website.
+     */
+    private fun waitUntilLoggedIn(driver: WebDriver, loginPage: LoginPage) {
+        val duration = Duration.ofSeconds(1)
+        val correctDomain: () -> Boolean = { driver.currentUrl.startsWith("https://my.gcc.edu/") }
+        val loginButtonPresent: () -> Boolean = { loginPage.isLoginButtonPresent() }
+
+        while (!correctDomain() || loginButtonPresent())
+            loginPage.wait(duration)
     }
 }

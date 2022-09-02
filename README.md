@@ -26,9 +26,9 @@ This project has no affiliation with Grove City College in any way.
 5. Once logged in, the browser will automatically navigate to your course registration page
 6. Specify which course you'd like to sign up for on the course signup page. If you need to sign up for more than six courses, then click the `Launch` button again to create a second browser instance.
    1. Once you finish specifying your courses, make sure the `Add Course(s)` button is visible otherwise the application will not be able to click it!
-8. Make sure your computer stays awake until it is time for course registration
-9. ???
-10. Profit
+7. Make sure your computer stays awake until it is time for course registration
+8. ???
+9. Profit
 
 ## Notes
 
